@@ -2,6 +2,8 @@ import express from 'express';
 import { envs } from './config/envs';
 import { GithubController } from './presentation/github/controller';
 import { GitHubService } from './presentation/services/github.service';
+import { DiscordService } from './presentation/services/discord.service';
+import { GitHubSha256Middleware } from './presentation/middlewares/github-sha256.middleware';
 
 (() => {
     main();
@@ -13,9 +15,12 @@ function main() {
     const app = express();
 
     const githubService = new GitHubService();
-    const controller = new GithubController(githubService);
+    const discordService = new DiscordService();
+    const controller = new GithubController(githubService, discordService);
 
     app.use(express.json());
+
+    app.use(GitHubSha256Middleware.verifyGithubSignature);
 
     app.post('/api/github', controller.webhookHandler);
 
